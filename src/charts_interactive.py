@@ -64,8 +64,8 @@ def velocity(r: Results) -> dict:
         mid = c.start + (c.end - c.start) / 2
         peak = d.loc[c.start:c.end, "outflow_operating"].max()
         annotations.append(dict(
-            text=f"<b>{nv.callout(c)}</b>", x=mid, y=peak, ax=40, ay=-40 if peak > ymax * 0.7 else -80,
-            showarrow=True, arrowhead=0, arrowwidth=1.4, arrowcolor=st.ACCENT, xanchor="left",
+            text="<b>" + nv.callout(c, r).replace("\n", "<br>") + "</b>", x=mid, y=peak, ax=40, ay=-40 if peak > ymax * 0.7 else -80,
+            showarrow=True, arrowhead=0, arrowwidth=1.4, arrowcolor=st.ACCENT, xanchor="left", align="left",
             font=dict(size=14, color=st.INK), bgcolor="rgba(255,255,255,0.85)"))
     lab = pd.Timestamp("2025-06-01")
     lab2 = pd.Timestamp("2025-10-25")

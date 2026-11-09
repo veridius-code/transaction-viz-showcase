@@ -3,8 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Transaction Patterns Showcase</title>
-<meta name="description" content="Three example visualisations of 12 months of synthetic company transactions: spending velocity, cash flow, and multi-day clusters against a baseline.">
+<title>Spending and Cash Flow Review</title>
+<meta name="description" content="Illustrative sample report for a fictional company: spending velocity, cash flow and unusual multi-day periods over 12 months. All data is synthetic.">
 <style>
   :root {
     color-scheme: light;
@@ -14,39 +14,81 @@
     --rule: #e3e3e3;
     --panel: #f6f6f4;
     --bg: #ffffff;
+    --brand: #1d3a4a;
     --accent: #D55E00;
     --accent-ink: #a34700;
     --secondary: #0072B2;
     --notice-bg: #fff4ec;
-    --notice-rule: #f0c3a1;
     --radius: 10px;
     --font: "Helvetica Neue", Helvetica, Arial, system-ui, sans-serif;
+    --nav-h: 52px;
   }
   * { box-sizing: border-box; }
-  html { -webkit-text-size-adjust: 100%; }
+  html { -webkit-text-size-adjust: 100%; scroll-behavior: smooth; }
   body { margin: 0; background: var(--bg); color: var(--ink); font: 17px/1.6 var(--font); }
+  [id] { scroll-margin-top: calc(var(--nav-h) + 16px); }
   .wrap { max-width: 1120px; margin: 0 auto; padding: 0 24px; }
-  header.top { padding: 56px 0 8px; }
-  .eyebrow { font-size: 13px; letter-spacing: .08em; text-transform: uppercase; color: var(--ink-3); margin: 0 0 10px; font-weight: 600; }
-  h1 { font-size: clamp(30px, 4.4vw, 44px); line-height: 1.12; margin: 0 0 14px; letter-spacing: -0.01em; max-width: 22ch; }
-  .lede { font-size: 19px; color: var(--ink-2); max-width: 64ch; margin: 0 0 18px; }
-  .byline { font-size: 15px; color: var(--ink-3); margin: 0; }
-  .byline a { color: inherit; }
   a { color: var(--secondary); text-underline-offset: 2px; }
-  .notice { margin: 28px 0 8px; padding: 16px 20px; background: var(--notice-bg); border-left: 4px solid var(--accent); border-radius: 0 var(--radius) var(--radius) 0; color: var(--ink); font-size: 16px; }
+
+  /* Report masthead */
+  .masthead { background: var(--brand); color: #fff; }
+  .masthead .wrap { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding-top: 14px; padding-bottom: 14px; }
+  .brand { display: flex; align-items: center; gap: 12px; min-width: 0; }
+  .mark { flex: none; width: 38px; height: 38px; border-radius: 8px; background: #fff; color: var(--brand); display: grid; place-items: center; font-weight: 800; font-size: 15px; letter-spacing: .02em; }
+  .brand-name { font-weight: 700; font-size: 17px; line-height: 1.2; }
+  .brand-sub { font-size: 13px; opacity: .8; line-height: 1.3; }
+  .badge { flex: none; font-size: 12.5px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; padding: 6px 11px; border-radius: 999px; background: var(--accent); color: #fff; white-space: nowrap; }
+
+  /* Section nav */
+  nav.toc { position: sticky; top: 0; z-index: 10; background: rgba(255,255,255,.96); backdrop-filter: blur(6px); border-bottom: 1px solid var(--rule); }
+  nav.toc ul { list-style: none; margin: 0 auto; padding: 0 24px; max-width: 1120px; display: flex; gap: 4px; overflow-x: auto; height: var(--nav-h); align-items: center; scrollbar-width: none; }
+  nav.toc ul::-webkit-scrollbar { display: none; }
+  nav.toc a { display: block; padding: 7px 12px; border-radius: 999px; color: var(--ink-2); text-decoration: none; font-size: 15px; white-space: nowrap; }
+  nav.toc a:hover, nav.toc a:focus-visible { background: var(--panel); color: var(--ink); }
+
+  header.top { padding: 44px 0 4px; }
+  .eyebrow { font-size: 13px; letter-spacing: .08em; text-transform: uppercase; color: var(--ink-3); margin: 0 0 10px; font-weight: 600; }
+  h1 { font-size: clamp(30px, 4.4vw, 44px); line-height: 1.12; margin: 0 0 14px; letter-spacing: -0.01em; max-width: 24ch; }
+  .lede { font-size: 19px; color: var(--ink-2); max-width: 64ch; margin: 0 0 14px; }
+  .byline { font-size: 15px; color: var(--ink-3); margin: 0; }
+  .notice { margin: 24px 0 4px; padding: 14px 18px; background: var(--notice-bg); border-left: 4px solid var(--accent); border-radius: 0 var(--radius) var(--radius) 0; font-size: 15.5px; }
   .notice strong { color: var(--accent-ink); }
-  .stats { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; margin: 28px 0 8px; }
+
+  h2.sec { font-size: 22px; margin: 0 0 14px; }
+  .stats { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; margin: 28px 0 0; }
   .stat { background: var(--panel); border-radius: var(--radius); padding: 16px 18px; }
   .stat .v { font-size: 28px; font-weight: 700; line-height: 1.15; font-variant-numeric: tabular-nums; }
   .stat .l { font-size: 14px; color: var(--ink-2); margin-top: 4px; line-height: 1.35; }
-  section.chart { padding: 48px 0 12px; border-top: 1px solid var(--rule); margin-top: 40px; }
+
+  .findings { margin: 40px 0 0; }
+  .cards { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; counter-reset: f; }
+  .card { border: 1px solid var(--rule); border-radius: var(--radius); padding: 18px 18px 16px; display: flex; flex-direction: column; gap: 6px; }
+  .card .k { counter-increment: f; font-size: 13px; font-weight: 700; color: var(--ink-3); }
+  .card .k::before { content: counter(f); display: inline-grid; place-items: center; width: 22px; height: 22px; border-radius: 50%; background: var(--ink); color: #fff; margin-right: 8px; font-size: 12px; }
+  .card h3 { font-size: 18px; line-height: 1.3; margin: 2px 0 0; }
+  .card p { margin: 0; color: var(--ink-2); font-size: 15px; line-height: 1.5; flex: 1; }
+  .card a { font-size: 14.5px; font-weight: 600; text-decoration: none; margin-top: 6px; }
+
+  section.chart { padding: 44px 0 8px; border-top: 1px solid var(--rule); margin-top: 44px; }
   .num { font-size: 13px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--ink-3); margin: 0 0 6px; }
-  h2 { font-size: clamp(23px, 2.8vw, 30px); line-height: 1.2; margin: 0 0 6px; letter-spacing: -0.005em; }
-  .sub { color: var(--ink-2); margin: 0 0 18px; font-size: 16px; }
+  h2 { font-size: clamp(23px, 2.8vw, 30px); line-height: 1.2; margin: 0 0 8px; letter-spacing: -0.005em; }
+  .howto { color: var(--ink-2); margin: 0 0 16px; font-size: 15.5px; max-width: 90ch; }
+  .howto b { color: var(--ink); font-weight: 600; }
+  .key { display: inline-block; width: 12px; height: 12px; border-radius: 3px; vertical-align: -1px; margin: 0 4px 0 2px; }
+  .key.grey { background: #C9C9C9; } .key.blue { background: #CFE3F1; border: 1px solid #9cc4e0; } .key.orange { background: var(--accent); }
+  .key.line { height: 3px; width: 16px; border-radius: 2px; background: var(--ink); vertical-align: 3px; }
+  .key.pos { background: var(--secondary); } .key.band { background: #E6E6E6; }
   .plot { width: 100%; height: 470px; }
   #cashflow { height: 540px; }
-  .insight { font-size: 17px; max-width: 72ch; margin: 18px 0 12px; }
-  .downloads { display: flex; flex-wrap: wrap; gap: 10px; font-size: 15px; margin: 6px 0 0; padding: 0; list-style: none; }
+  .two { display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr); gap: 36px; margin-top: 18px; }
+  .block h3 { font-size: 13px; letter-spacing: .08em; text-transform: uppercase; color: var(--ink-3); margin: 0 0 8px; }
+  .block p { margin: 0 0 10px; }
+  .check { background: var(--panel); border-radius: var(--radius); padding: 16px 18px; align-self: start; }
+  .check h4 { margin: 0 0 6px; font-size: 15.5px; }
+  .check table { min-width: 0; font-size: 14.5px; margin-bottom: 14px; }
+  .check table:last-child { margin-bottom: 0; }
+  .check p { font-size: 15px; color: var(--ink-2); }
+  .downloads { display: flex; flex-wrap: wrap; gap: 10px; font-size: 15px; margin: 14px 0 0; padding: 0; list-style: none; }
   .downloads a { display: inline-block; padding: 7px 14px; border: 1px solid var(--rule); border-radius: 999px; text-decoration: none; color: var(--ink); background: #fff; }
   .downloads a:hover { border-color: var(--ink-3); }
   .panels { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 20px; }
@@ -54,31 +96,49 @@
   .panel .pct { font-weight: 700; font-size: 15px; margin: 0; }
   .panel .det { color: var(--ink-2); font-size: 14px; margin: 0 0 4px; font-variant-numeric: tabular-nums; }
   .panel .plot { height: 300px; }
-  h2.plain { margin-top: 0; }
-  section.text { padding: 48px 0 8px; border-top: 1px solid var(--rule); margin-top: 40px; }
+
+  section.text { padding: 44px 0 8px; border-top: 1px solid var(--rule); margin-top: 44px; }
   section.text p, section.text li { max-width: 74ch; }
-  section.text h3 { font-size: 18px; margin: 26px 0 6px; }
+  ol.steps { list-style: none; padding: 0; margin: 18px 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; counter-reset: s; }
+  ol.steps li { background: var(--panel); border-radius: var(--radius); padding: 16px 18px; counter-increment: s; font-size: 15.5px; color: var(--ink-2); }
+  ol.steps li b { display: block; color: var(--ink); font-size: 16.5px; margin-bottom: 4px; }
+  ol.steps li b::before { content: "Step " counter(s) " · "; color: var(--ink-3); font-weight: 600; }
+  details { border: 1px solid var(--rule); border-radius: var(--radius); margin: 14px 0; background: #fff; }
+  details > summary { cursor: pointer; padding: 14px 18px; font-weight: 600; list-style: none; display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+  details > summary::-webkit-details-marker { display: none; }
+  details > summary::after { content: "+"; font-size: 20px; color: var(--ink-3); line-height: 1; }
+  details[open] > summary::after { content: "−"; }
+  details > .inner { padding: 0 18px 12px; }
+  details h3 { font-size: 16.5px; margin: 18px 0 4px; }
+  dl.terms { margin: 0; }
+  dl.terms dt { font-weight: 700; margin-top: 12px; }
+  dl.terms dd { margin: 2px 0 0; color: var(--ink-2); max-width: 74ch; }
   .table-wrap { overflow-x: auto; margin: 14px 0; -webkit-overflow-scrolling: touch; }
   table { border-collapse: collapse; font-size: 15px; width: 100%; min-width: 560px; }
-  th, td { text-align: left; padding: 9px 12px 9px 0; border-bottom: 1px solid var(--rule); vertical-align: top; }
-  th { font-size: 13px; text-transform: uppercase; letter-spacing: .05em; color: var(--ink-3); font-weight: 600; }
+  th, td { text-align: left; padding: 8px 12px 8px 0; border-bottom: 1px solid var(--rule); vertical-align: top; }
+  th { font-size: 12.5px; text-transform: uppercase; letter-spacing: .05em; color: var(--ink-3); font-weight: 600; }
   td.n, th.n { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; padding-right: 0; padding-left: 12px; }
   table.wide { min-width: 980px; }
   table.wide td:first-child, table.wide td:last-child { white-space: nowrap; }
   td.n + td:not(.n), th.n + th:not(.n) { padding-left: 20px; }
   .links { display: flex; flex-wrap: wrap; gap: 10px; margin: 14px 0; padding: 0; list-style: none; }
   footer { margin-top: 56px; padding: 28px 0 48px; border-top: 1px solid var(--rule); color: var(--ink-2); font-size: 15px; }
-  footer .syn { color: var(--ink-3); font-style: italic; }
+  footer p { margin: 0 0 6px; }
+  footer .syn { color: var(--ink-3); }
   code { font-family: ui-monospace, Menlo, Consolas, monospace; font-size: .9em; background: var(--panel); padding: 1px 5px; border-radius: 4px; }
   .noscript { padding: 14px; background: var(--panel); border-radius: var(--radius); }
-  @media (max-width: 860px) {
-    .panels { grid-template-columns: 1fr; }
+  @media (max-width: 900px) {
+    .panels, .cards, ol.steps { grid-template-columns: 1fr; }
     .stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .two { grid-template-columns: 1fr; gap: 10px; }
   }
   @media (max-width: 640px) {
     body { font-size: 16px; }
-    .wrap { padding: 0 16px; }
-    header.top { padding-top: 32px; }
+    .wrap, nav.toc ul { padding-left: 16px; padding-right: 16px; }
+    .brand-sub { display: none; }
+    .brand-name { font-size: 15px; }
+    .badge { font-size: 11px; padding: 5px 9px; }
+    header.top { padding-top: 28px; }
     .lede { font-size: 17px; }
     .plot { height: 340px; }
     #cashflow { height: 440px; }
@@ -87,108 +147,193 @@
     section.chart, section.text { padding-top: 32px; margin-top: 28px; }
   }
   @media print {
-    .downloads, .links { display: none; }
+    nav.toc, .downloads, .links { display: none; }
     section.chart { break-inside: avoid; }
   }
 </style>
 </head>
 <body>
+
+<div class="masthead">
+  <div class="wrap">
+    <div class="brand">
+      <div class="mark" aria-hidden="true">{{MONOGRAM}}</div>
+      <div>
+        <div class="brand-name">{{COMPANY}}</div>
+        <div class="brand-sub">Finance · Spending and cash flow review</div>
+      </div>
+    </div>
+    <span class="badge" title="{{DISCLAIMER}}">Sample · synthetic data</span>
+  </div>
+</div>
+
+<nav class="toc" aria-label="Sections">
+  <ul>
+    <li><a href="#summary">Summary</a></li>
+    <li><a href="#velocity-section">Spending</a></li>
+    <li><a href="#cashflow-section">Cash flow</a></li>
+    <li><a href="#compare-section">Unusual periods</a></li>
+    <li><a href="#how">How it works</a></li>
+    <li><a href="#quality">Data quality</a></li>
+    <li><a href="#files">Files</a></li>
+  </ul>
+</nav>
+
 <div class="wrap">
 
-<header class="top">
-  <p class="eyebrow">Portfolio sample · transaction analytics</p>
-  <h1>Twelve months of transactions, three charts an executive can read in a minute</h1>
-  <p class="lede">These samples turn a year of company transaction records into three views: how fast money is going out compared with normal, how the cash position moves, and whether unusual multi-day spending is really out of the ordinary.</p>
-  <p class="byline">{{AUTHOR}} · <a href="{{REPO_URL}}">Source code and notebook</a></p>
+<header class="top" id="summary">
+  <p class="eyebrow">{{PERIOD}} · 12 months of transactions</p>
+  <h1>Where the money went, how cash moved, and what looked unusual</h1>
+  <p class="lede">This review looks at a full year of {{COMPANY_SHORT}}'s bank transactions. It answers three questions: is spending running at its normal pace, is the cash position healthy, and which periods deserve a closer look?</p>
+  <p class="byline">Prepared by {{AUTHOR}} · {{BUILD_DATE}}</p>
   <div class="notice" role="note">
-    <strong>Synthetic data.</strong> Every transaction here was generated by a script (seed {{SEED}}) to look like a typical company ledger. No real company or client data is used. Three anomalies were planted on purpose so the method can be checked against a known answer.
+    <strong>Illustrative sample.</strong> {{DISCLAIMER}} Three unusual periods were planted on purpose so the method can be checked against a known answer.
   </div>
+
   <div class="stats">
-    <div class="stat"><div class="v">{{N_TX}}</div><div class="l">transactions after cleaning ({{N_RAW}} raw rows)</div></div>
-    <div class="stat"><div class="v">{{TYPICAL_SPEND}}</div><div class="l">typical daily operating spend</div></div>
-    <div class="stat"><div class="v">{{NET}}</div><div class="l">net cash generated over the year</div></div>
-    <div class="stat"><div class="v">{{N_FLAGGED}}</div><div class="l">multi-day periods flagged as unusual</div></div>
+    <div class="stat"><div class="v">{{NET}}</div><div class="l">cash generated over the year</div></div>
+    <div class="stat"><div class="v">{{TYPICAL_SPEND}}</div><div class="l">typical day's operating spend</div></div>
+    <div class="stat"><div class="v">{{N_FLAGGED}}</div><div class="l">periods worth a closer look</div></div>
+    <div class="stat"><div class="v">{{N_TX}}</div><div class="l">transactions reviewed</div></div>
+  </div>
+
+  <div class="findings">
+    <h2 class="sec">Three things to know</h2>
+    <div class="cards">
+{{FINDINGS}}
+    </div>
   </div>
 </header>
 
 <noscript><p class="noscript">The interactive charts need JavaScript. The PNG and PDF downloads under each chart work without it.</p></noscript>
 
-<section class="chart" id="chart-velocity">
-  <p class="num">Chart 1 · Spending velocity vs baseline</p>
+<section class="chart" id="velocity-section">
+  <p class="num">Chart 1 · Spending pace</p>
   <h2>{{VELOCITY_TITLE}}</h2>
-  <p class="sub">{{VELOCITY_SUB}}</p>
-  <div class="plot" id="velocity" role="img" aria-label="Daily operating spend for 2025 with typical range and flagged periods"></div>
-  <p class="insight">{{VELOCITY_INSIGHT}}</p>
-  <ul class="downloads">
-    <li><a href="downloads/1_spending_velocity.png" download>Download PNG</a></li>
-    <li><a href="downloads/1_spending_velocity.pdf" download>Download PDF</a></li>
-  </ul>
+  <p class="howto"><b>How to read it:</b> each <span class="key grey"></span>bar is one day's operating spend (payroll and rent are left out because they are fixed). The <span class="key blue"></span>band is the normal range and the <span class="key line"></span>line is the 7-day average. <span class="key orange"></span>Orange days are the ones flagged. Hover over the chart for exact figures.</p>
+  <div class="plot" id="velocity" role="img" aria-label="Daily operating spend for 2025 with normal range and flagged periods"></div>
+  <div class="two">
+    <div class="block">
+      <h3>What it means</h3>
+      <p>{{VELOCITY_INSIGHT}}</p>
+      <ul class="downloads">
+        <li><a href="downloads/1_spending_velocity.png" download>Download PNG</a></li>
+        <li><a href="downloads/1_spending_velocity.pdf" download>Download PDF</a></li>
+      </ul>
+    </div>
+    <div class="block check">
+      <h3>Worth checking</h3>
+{{CHECKS}}
+    </div>
+  </div>
 </section>
 
-<section class="chart" id="chart-cashflow">
-  <p class="num">Chart 2 · Cash flow pattern</p>
+<section class="chart" id="cashflow-section">
+  <p class="num">Chart 2 · Cash position</p>
   <h2>{{CASHFLOW_TITLE}}</h2>
-  <p class="sub">{{CASHFLOW_SUB}} Grey bands mark the flagged periods.</p>
+  <p class="howto"><b>How to read it:</b> the top line is the running total of money in minus money out since 1 January. The bottom bars show each week's balance: <span class="key pos"></span>blue weeks brought in more than they spent, and <span class="key orange"></span>orange weeks spent more. <span class="key band"></span>Grey bands mark the flagged periods.</p>
   <div class="plot" id="cashflow" role="img" aria-label="Cumulative net cash position and weekly net cash flow for 2025"></div>
-  <p class="insight">{{CASHFLOW_INSIGHT}}</p>
-  <ul class="downloads">
-    <li><a href="downloads/2_cash_flow.png" download>Download PNG</a></li>
-    <li><a href="downloads/2_cash_flow.pdf" download>Download PDF</a></li>
-  </ul>
+  <div class="two">
+    <div class="block">
+      <h3>What it means</h3>
+      <p>{{CASHFLOW_INSIGHT}}</p>
+      <ul class="downloads">
+        <li><a href="downloads/2_cash_flow.png" download>Download PNG</a></li>
+        <li><a href="downloads/2_cash_flow.pdf" download>Download PDF</a></li>
+      </ul>
+    </div>
+    <div class="block check">
+      <h3>Worth checking</h3>
+{{CASH_CHECK}}
+    </div>
+  </div>
 </section>
 
-<section class="chart" id="chart-compare">
-  <p class="num">Chart 3 · Flagged periods vs normal periods</p>
+<section class="chart" id="compare-section">
+  <p class="num">Chart 3 · Are the flagged periods really unusual?</p>
   <h2>{{COMPARE_TITLE}}</h2>
-  <p class="sub">{{COMPARE_SUB}}</p>
+  <p class="howto"><b>How to read it:</b> the <span class="key grey"></span>grey bars show every ordinary stretch of the same length in 2025. The <span class="key orange"></span>orange line is the flagged period, and its whiskers show the range we're 95% confident in. The further the orange line sits from the grey pile, the more unusual the period.</p>
   <div class="panels">
 {{PANELS}}
   </div>
-  <p class="insight">{{COMPARE_INSIGHT}}</p>
-  <ul class="downloads">
-    <li><a href="downloads/3_cluster_vs_normal.png" download>Download PNG</a></li>
-    <li><a href="downloads/3_cluster_vs_normal.pdf" download>Download PDF</a></li>
-  </ul>
-  <div class="table-wrap">
+  <div class="two">
+    <div class="block">
+      <h3>What it means</h3>
+      <p>{{COMPARE_INSIGHT}}</p>
+      <ul class="downloads">
+        <li><a href="downloads/3_cluster_vs_normal.png" download>Download PNG</a></li>
+        <li><a href="downloads/3_cluster_vs_normal.pdf" download>Download PDF</a></li>
+      </ul>
+    </div>
+  </div>
+  <details>
+    <summary>See all the numbers for each flagged period</summary>
+    <div class="inner"><div class="table-wrap">
 {{CLUSTER_TABLE}}
-  </div>
+    </div></div>
+  </details>
 </section>
 
-<section class="text" id="method">
-  <h2 class="plain">Method</h2>
-  <h3>What counts as spending</h3>
-  <p>Detection uses <em>operating</em> spend, which excludes scheduled payroll and rent. Those payments are known in advance, and including them would flag every month-end. Chart 2 includes everything.</p>
-  <h3>Baseline</h3>
-  <p>Each day is first adjusted for its weekday, because weekends run at about half of a weekday's volume. The baseline is the median of the previous {{WINDOW}} days. Its spread is the median absolute deviation × 1.4826 over the previous {{SPREAD_WINDOW}} days, a robust stand-in for a standard deviation that a few very large invoices cannot inflate. Weekends are noisier as well as lower, so each weekday's deviations are also put on a common scale. A day's <em>robust z-score</em> is how many spreads it sits above or below its baseline.</p>
-  <h3>Cluster rule</h3>
-  <p>A cluster is {{MIN_RUN}} or more consecutive days with robust z above {{Z}} for spending, or below −{{Z}} for inflows (a drought). Days inside a cluster are taken out of the baseline and the baseline is recalculated, so a cluster never hides itself by raising its own "normal". All of these settings live in one configuration object in <code>src/analysis.py</code>.</p>
-  <h3>Comparing a cluster with normal periods</h3>
-  <p>For a cluster of length <em>L</em>, every other <em>L</em>-day window in the year that does not touch a cluster gives a normal value: its average per day. The cluster is then described three ways. First, as a multiple of the typical (median) window. Second, by the share of normal windows it exceeds, which is a <em>descriptive percentile</em> and not a p-value. Third, with a 95% bootstrap interval for its own average per day ({{N_BOOT}} resamples of its days).</p>
-  <h3>Does it work on data it wasn't tuned on?</h3>
-  <p>The ledger was regenerated with {{ROB_SEEDS}} other random seeds: same planted anomalies, different noise. At default settings the detector found {{ROB_FOUND}} of {{ROB_TOTAL}} planted anomalies, {{ROB_EXACT}} of them with start and end dates within one day. It raised {{ROB_FALSE}} false clusters in total across those {{ROB_SEEDS}} simulated years. The published sample (seed {{SEED}}) recovers all three planted anomalies exactly, with no false clusters, and an automated test checks this.</p>
-  <h3>Limitations</h3>
-  <ul>
-    <li>The data is synthetic. Real ledgers have quirks this one lacks, such as quarter-end effects, bank holidays, and reversals.</li>
-    <li>The baseline needs about four weeks of history, so the first weeks of the year are not scored.</li>
-    <li>Short clusters have few days to resample, so their bootstrap intervals are rough.</li>
-    <li>Windows overlap, so the normal periods are not independent of one another. This is another reason the percentiles are descriptive.</li>
-    <li>A flag means "look at this", not "something is wrong". The natural next step is to check the transactions in the flagged period.</li>
-  </ul>
+<section class="text" id="how">
+  <h2>How it works</h2>
+  <p>The same three steps run automatically every time the data is refreshed.</p>
+  <ol class="steps">
+    <li><b>Tidy the data</b>The raw export is cleaned up: duplicates removed, dates and amounts standardised, missing categories filled in. Every fix is logged.</li>
+    <li><b>Learn what "normal" looks like</b>For every day, the previous four weeks set the normal level, allowing for quieter weekends and ignoring a few very large one-off invoices.</li>
+    <li><b>Flag and double-check</b>Two or more days in a row well outside the normal range are flagged. Each flagged period is then compared with every ordinary period of the same length.</li>
+  </ol>
+
+  <details>
+    <summary>Terms used in this report</summary>
+    <div class="inner"><dl class="terms">
+      <dt>Operating spend</dt><dd>Day-to-day spending: suppliers, contractors, equipment, travel, software and so on. Payroll and rent are left out because they are fixed and scheduled.</dd>
+      <dt>Normal range</dt><dd>The band a typical day falls in, based on the previous four weeks and adjusted for the day of the week.</dd>
+      <dt>Flagged period</dt><dd>Two or more consecutive days well above the normal range for spending, or well below it for money coming in.</dd>
+      <dt>"x typical"</dt><dd>How many times larger the flagged period's daily average is than a typical period of the same length.</dd>
+      <dt>95% interval</dt><dd>The likely range for the flagged period's true daily average, allowing for day-to-day noise.</dd>
+      <dt>"Higher than all N normal periods"</dt><dd>A plain description of where the period sits among ordinary periods. It is not a statistical significance test.</dd>
+    </dl></div>
+  </details>
+
+  <details>
+    <summary>Technical method (for analysts)</summary>
+    <div class="inner">
+      <h3>Baseline</h3>
+      <p>Each day is divided by its weekday factor. The baseline is the median of the previous {{WINDOW}} days. Its spread is the median absolute deviation × 1.4826 of the deviations from that baseline, over the previous {{SPREAD_WINDOW}} days. Weekends are noisier as well as lower, so each weekday's z-scores are rescaled to a common spread. Detection uses operating spend only (payroll and rent excluded).</p>
+      <h3>Cluster rule</h3>
+      <p>A cluster is {{MIN_RUN}} or more consecutive days with robust z above {{Z}} for spending, or below −{{Z}} for inflows. Days inside a cluster are removed and the baseline is recalculated until the clusters settle, so a cluster never inflates its own baseline. Isolated high days stay in, because removing them would make the spread too narrow. All settings live in <code>DetectionConfig</code> in <code>src/analysis.py</code>.</p>
+      <h3>Window comparison</h3>
+      <p>For a cluster of length <em>L</em>, every other <em>L</em>-day window that doesn't touch a cluster gives one reference value: its mean per day. The outputs are three: the cluster's mean as a multiple of the median reference window; the share of reference windows it exceeds, which is a descriptive empirical percentile and not a p-value; and a 95% bootstrap interval of the cluster's mean per day ({{N_BOOT}} resamples).</p>
+      <h3>Robustness</h3>
+      <p>The ledger was regenerated with {{ROB_SEEDS}} other random seeds: same planted anomalies, different noise. At default settings the detector found {{ROB_FOUND}} of {{ROB_TOTAL}} planted anomalies, {{ROB_EXACT}} of them with start and end dates within one day. It raised {{ROB_FALSE}} false clusters in total across those years. On the published sample it recovers all three exactly with no false clusters, and an automated test checks this.</p>
+      <h3>Limitations</h3>
+      <ul>
+        <li>The data is synthetic. Real ledgers have quarter-ends, bank holidays, reversals and other quirks.</li>
+        <li>The baseline needs about four weeks of history, so early January is not scored.</li>
+        <li>Short clusters give rough bootstrap intervals.</li>
+        <li>Overlapping windows are not independent, which is another reason the percentiles are descriptive.</li>
+        <li>A flag means "look here", not "something is wrong".</li>
+      </ul>
+    </div>
+  </details>
 </section>
 
-<section class="text" id="cleaning">
-  <h2 class="plain">Data cleaning log</h2>
-  <p>The raw export is deliberately messy: mixed date formats, amounts stored as text, duplicated rows, missing categories, and inconsistent labels. Every fix is logged with a row count. The cleaned ledger matches the generator's ground truth exactly, and a test checks this.</p>
-  <div class="table-wrap">
+<section class="text" id="quality">
+  <h2>Data quality</h2>
+  <p>{{QUALITY_SUMMARY}}</p>
+  <details>
+    <summary>Full cleaning log</summary>
+    <div class="inner"><div class="table-wrap">
 {{CLEANING_TABLE}}
-  </div>
+    </div></div>
+  </details>
 </section>
 
 <section class="text" id="files">
-  <h2 class="plain">Files</h2>
-  <p>The whole pipeline runs with <code>make build</code>: generate, clean, detect, test, chart, and publish this page. The notebook walks through the same steps and imports the same code.</p>
+  <h2>Files</h2>
+  <p>Everything on this page is produced by one command (<code>make build</code>). The notebook walks through the same steps and imports the same code.</p>
   <ul class="links downloads">
-    <li><a href="{{REPO_URL}}">Repository</a></li>
+    <li><a href="{{REPO_URL}}">Source code</a></li>
     <li><a href="{{REPO_URL}}/blob/main/notebook/analysis.ipynb">Notebook on GitHub</a></li>
     <li><a href="{{NBVIEWER_URL}}">Notebook on nbviewer</a></li>
   </ul>
@@ -196,7 +341,7 @@
 
 <footer>
   <p><strong>{{AUTHOR}}</strong> · <a href="https://github.com/{{GH_USER}}">github.com/{{GH_USER}}</a></p>
-  <p class="syn">Synthetic data - illustrative sample. Built {{BUILD_DATE}}.</p>
+  <p class="syn">Synthetic data - illustrative sample. {{DISCLAIMER}}</p>
 </footer>
 
 </div>

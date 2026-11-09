@@ -7,6 +7,7 @@ from __future__ import annotations
 
 import pandas as pd
 
+from src import config
 from src.analysis import Cluster, Results
 
 
@@ -28,9 +29,10 @@ def droughts(r: Results) -> list[Cluster]:
     return [c for c in r.clusters if c.kind == "inflow_drought"]
 
 
-def callout(c: Cluster) -> str:
+def callout(c: Cluster, r: Results | None = None) -> str:
     if c.kind == "spend_cluster":
-        return f"{c.label}: {c.xfold:.1f}x typical daily spend"
+        text = f"{c.label}: {c.xfold:.1f}x typical daily spend"
+        return f"{text}\nmostly {top_category(r, c).lower()}" if r is not None else text
     return f"{c.label}: inflows at {c.xfold:.0%} of typical"
 
 
@@ -54,7 +56,7 @@ def velocity_title(r: Results) -> str:
     return f"{n} short {word} pushed daily spending up to {top.xfold:.1f}x its normal level"
 
 
-VELOCITY_SUBTITLE = ("Daily operating spend, 2025 (excludes scheduled payroll and rent). "
+VELOCITY_SUBTITLE = (f"{config.COMPANY_SHORT}: daily operating spend, 2025 (excludes scheduled payroll and rent). "
                      "Blue band = typical range, line = 7-day average.")
 
 
@@ -121,7 +123,7 @@ def cashflow_title(r: Results) -> str:
     return f"Cash {verb} by {money_k(abs(final))} over the year, with dips each payroll week"
 
 
-CASHFLOW_SUBTITLE = ("Top: cumulative net cash flow since 1 Jan. "
+CASHFLOW_SUBTITLE = (f"{config.COMPANY_SHORT}. Top: cumulative net cash flow since 1 Jan. "
                      "Bottom: net cash flow per week (money in minus money out).")
 
 
@@ -176,3 +178,52 @@ def compare_insight(r: Results) -> str:
     return (f"Each panel compares one flagged period with at least {n_min} ordinary stretches of the same "
             f"length from the same year. {middle} The percentages describe where a period sits among "
             "normal periods; they are not significance tests.")
+
+
+# --------------------------------------------------------------------------- #
+# Page helpers: summary findings and "worth checking" detail
+# --------------------------------------------------------------------------- #
+def worth_checking(r: Results, c: Cluster) -> pd.DataFrame:
+    """Largest payees in the category that drove a spending burst."""
+    tx = r.transactions
+    cat = top_category(r, c)
+    sel = tx[(tx["direction"] == "out") & (tx["category"] == cat) & tx["date"].between(c.start, c.end)]
+    g = (sel.groupby("counterparty")["amount"].agg(["count", "sum"])
+         .sort_values("sum", ascending=False).reset_index())
+    g.columns = ["Paid to", "Payments", "Total"]
+    return g
+
+
+def drought_shortfall(r: Results, c: Cluster) -> tuple[float, float]:
+    """(expected, actual) money in over the drought, using the weekday-adjusted baseline."""
+    d = r.daily.loc[c.start:c.end]
+    expected = float((d["in_baseline"] * d["in_dow_factor"]).sum())
+    return expected, float(d["inflow"].sum())
+
+
+def summary_points(r: Results) -> list[dict]:
+    d = r.daily
+    final = d["cumulative_net"].iloc[-1]
+    pts = []
+    s = spend(r)
+    if s:
+        parts = [f"{c.label} ({top_category(r, c).lower()}, {c.xfold:.1f}x normal)" for c in s]
+        pts.append({
+            "headline": f"{NUM_WORDS.get(len(s), str(len(s)))} short spending {'burst' if len(s) == 1 else 'bursts'} stood out",
+            "detail": " and ".join(parts) + ". Each came from a single category, so it can be checked quickly.",
+            "anchor": "velocity-section",
+        })
+    pts.append({
+        "headline": f"Cash grew by {money_k(final)} over the year",
+        "detail": "Every month dips at payroll and recovers within days. That is the normal rhythm, not a problem.",
+        "anchor": "cashflow-section",
+    })
+    for c in droughts(r):
+        exp, act = drought_shortfall(r, c)
+        pts.append({
+            "headline": f"Customer payments almost stopped for {c.n_days} days in {c.start:%B}",
+            "detail": f"{c.label}: about {money_k(act)} arrived against roughly {money_k(exp)} expected. "
+                      "Worth confirming whether invoices went out late or payments were held.",
+            "anchor": "compare-section",
+        })
+    return pts

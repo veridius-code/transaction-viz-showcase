@@ -1,6 +1,6 @@
-"""Generate a synthetic 12-month transaction ledger.
+"""Generate a synthetic 12-month transaction ledger for a fictional company.
 
-Everything here is invented. The data is seeded so results are reproducible.
+Everything here is invented: the company, its counterparties and every amount. The data is seeded so results are reproducible.
 Two files are written:
 
 * data/transactions_clean_truth.csv  - the ground-truth ledger
@@ -16,23 +16,41 @@ import pandas as pd
 
 from src import config
 
+# All counterparty names below are invented for this sample.
+SUPPLIERS = ["Ironvale Materials", "Fernmoor Steel Supply", "Pell & Garrow Fixings", "Brackwater Timber",
+             "Oxley Hydraulics", "Sandholt Cabling", "Quarrington Aggregates", "Tamsin Rowe Electrical"]
+CUSTOMERS = [
+    "Holloway Grange Developments", "Pinecrest Estates", "Marlow Quay Partnership", "Ashcombe Housing Group",
+    "Riverbend Retail Parks", "Saltmarsh Wind Ltd", "Elderfield Schools Trust", "Cobham Vale Homes",
+    "Westerleigh Logistics", "Hartwell Water Partners", "Ferncliffe Leisure", "Oakhurst Medical Estates",
+    "Kingsmere Rail Systems", "Dunmore Data Centres", "Briarwood Care Homes", "Thornlea Civic Projects",
+    "Glenrock Quarries", "Silverstrand Ports", "Highcroft Student Living", "Meadowgate Solar",
+    "Penhallow Hotels", "Larchfield Business Parks", "Corrie Hill Distillery", "Avonmere Foods",
+    "Stonereach Utilities", "Wyecross Bridges", "Northcove Marine", "Blackthorn Aviation Services",
+    "Rosedale Retirement Villages", "Fairhaven Transit Ltd",
+]
+
 # category -> (lognormal mu, sigma, relative frequency, counterparties)
 OUTFLOW_CATEGORIES = {
-    "Suppliers":   (6.6, 0.50, 0.26, [f"Supplier {c}" for c in "ABCDEFGH"]),
-    "Logistics":   (6.1, 0.45, 0.16, [f"Logistics Co {i}" for i in range(1, 5)]),
-    "Software":    (5.4, 0.45, 0.11, [f"Software Vendor {i}" for i in range(1, 6)]),
-    "Travel":      (5.8, 0.50, 0.10, [f"Travel Agency {i}" for i in range(1, 4)]),
-    "Utilities":   (5.6, 0.35, 0.06, ["Utility Provider 1", "Utility Provider 2"]),
-    "Marketing":   (6.3, 0.50, 0.08, [f"Agency {c}" for c in "PQR"]),
-    "Contractors": (6.9, 0.40, 0.08, [f"Contractor {i}" for i in range(1, 7)]),
-    "Equipment":   (7.1, 0.45, 0.03, [f"Equipment Dealer {i}" for i in range(1, 4)]),
-    "Office":      (4.8, 0.45, 0.12, ["Office Supplies Ltd", "Cleaning Service", "Catering Co"]),
+    "Suppliers":   (6.6, 0.50, 0.26, SUPPLIERS),
+    "Logistics":   (6.1, 0.45, 0.16, ["Northway Freight", "Bramble Lane Haulage", "Swiftmere Couriers",
+                                      "Arden Pallet Network"]),
+    "Software":    (5.4, 0.45, 0.11, ["Ledgerline Cloud", "Plansmith CAD", "Fieldnote Apps",
+                                      "Gridwise Analytics", "Securebay IT"]),
+    "Travel":      (5.8, 0.50, 0.10, ["Waypoint Travel Desk", "Halcyon Rail & Air", "Mileway Car Hire"]),
+    "Utilities":   (5.6, 0.35, 0.06, ["Greenmeadow Energy", "Clearwell Water"]),
+    "Marketing":   (6.3, 0.50, 0.08, ["Foxglove Creative", "Pilcrow Print Studio", "Lanternfish Media"]),
+    "Contractors": (6.9, 0.40, 0.08, ["Morrow Site Services", "Delph Surveying", "Orrin Structural",
+                                      "Kitely Groundworks", "Abbots Ridge M&E", "Tenterden Drafting"]),
+    "Equipment":   (7.1, 0.45, 0.03, ["Harrowgate Plant & Machinery", "Lindqvist Tooling",
+                                      "Corbel Equipment Hire"]),
+    "Office":      (4.8, 0.45, 0.12, ["Paperhouse Office Supplies", "Brightside Cleaning", "Larder & Co Catering"]),
 }
 INFLOW_CATEGORIES = {
-    "Customer receipts": (7.26, 0.30, 0.90, [f"Customer {i:02d}" for i in range(1, 31)]),
+    "Customer receipts": (7.26, 0.30, 0.90, CUSTOMERS),
     # Distinct suffix so every counterparty maps to exactly one category.
-    "Refunds":           (5.5, 0.60, 0.08, [f"Supplier {c} (refund)" for c in "ABCD"]),
-    "Interest":          (4.5, 0.30, 0.02, ["Bank Interest"]),
+    "Refunds":           (5.5, 0.60, 0.08, [f"{n} (refund)" for n in SUPPLIERS[:4]]),
+    "Interest":          (4.5, 0.30, 0.02, ["Bank interest"]),
 }
 
 # Expected transaction counts per weekday (Mon=0 ... Sun=6). Counts are drawn
@@ -124,10 +142,10 @@ def generate_truth(seed: int = config.SEED) -> pd.DataFrame:
 
         # Scheduled fixed costs
         if day.day == 1:
-            records.append((day, round(RENT_BASE * trend, 2), "out", "Rent", "Landlord Property Co"))
+            records.append((day, round(RENT_BASE * trend, 2), "out", "Rent", "Wharfside Estates"))
         if day == _last_business_day(day.replace(day=1)):
             pay = PAYROLL_BASE * trend * float(rng.normal(1.0, 0.01))
-            records.append((day, round(pay, 2), "out", "Payroll", "Payroll Provider"))
+            records.append((day, round(pay, 2), "out", "Payroll", "Monthly payroll run"))
 
     df = pd.DataFrame(records, columns=["date", "amount", "direction", "category", "counterparty"])
     df = df.sort_values(["date", "direction"], kind="stable").reset_index(drop=True)

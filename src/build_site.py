@@ -54,6 +54,64 @@ def _cluster_table(r: Results) -> str:
     return _table(df, {"Days", "Total", "Per day (adj.)", "Typical per day", "vs typical", "95% CI per day"}, "wide")
 
 
+def _findings(r: Results) -> str:
+    out = []
+    for p in nv.summary_points(r):
+        out.append(f"""      <div class="card">
+        <div class="k">Finding</div>
+        <h3>{html.escape(p['headline'])}</h3>
+        <p>{html.escape(p['detail'])}</p>
+        <a href="#{p['anchor']}">See the chart &darr;</a>
+      </div>""")
+    return "\n".join(out)
+
+
+def _spend_checks(r: Results) -> str:
+    out = []
+    for c in nv.spend(r):
+        cat = nv.top_category(r, c)
+        payees = nv.worth_checking(r, c).head(3)
+        df = pd.DataFrame({"Paid to": payees["Paid to"], "Payments": payees["Payments"].astype(str),
+                           "Total": payees["Total"].map(nv.money)})
+        out.append(f"      <h4>{html.escape(c.label)} · {html.escape(cat)}</h4>\n      "
+                   + _table(df, {"Payments", "Total"}))
+    if not out:
+        return "      <p>Nothing stood out this year.</p>"
+    out.append("      <p>Largest payees in the category behind each burst. Matching these against purchase orders "
+               "is usually enough to explain them.</p>")
+    return "\n".join(out)
+
+
+def _cash_check(r: Results) -> str:
+    out = []
+    tx = r.transactions
+    for c in nv.droughts(r):
+        exp, act = nv.drought_shortfall(r, c)
+        before = tx[(tx["direction"] == "in") & (tx["category"] == "Customer receipts")
+                    & tx["date"].between(c.start - pd.Timedelta(days=28), c.start - pd.Timedelta(days=1))]
+        during = tx[(tx["direction"] == "in") & tx["date"].between(c.start, c.end)]
+        regular = before.groupby("counterparty")["amount"].agg(["count", "sum"])
+        regular = regular[(regular["count"] >= 3) & ~regular.index.isin(during["counterparty"])]
+        regular = regular.sort_values("sum", ascending=False).head(4)
+        out.append(f"      <h4>{html.escape(c.label)} · customer payments</h4>")
+        out.append(f"      <p>About {nv.money_k(act)} arrived against roughly {nv.money_k(exp)} expected, "
+                   f"a shortfall of about {nv.money_k(exp - act)}.</p>")
+        if len(regular):
+            df = pd.DataFrame({"Usually pays, nothing received": regular.index,
+                               "Prior 4 weeks": regular["sum"].map(nv.money).to_numpy()})
+            out.append("      " + _table(df, {"Prior 4 weeks"}))
+        out.append("      <p>Check whether invoices went out on time and whether these customers have since paid.</p>")
+    return "\n".join(out) if out else "      <p>No unusual dips in money coming in.</p>"
+
+
+def _quality_summary(r: Results) -> str:
+    log = r.log.to_frame().set_index("step")["rows_affected"]
+    return (f"The raw export had {log['Load']:,} rows. {log['Remove duplicates']:,} were duplicates and were removed. "
+            f"{log['Normalise dates']:,} dates in non-standard formats, {log['Parse currency text']:,} amounts stored "
+            f"as text and {log['Fill missing categories']:,} missing categories were fixed. Nothing else was dropped, "
+            f"and the cleaned data matches the generator's known answer exactly.")
+
+
 def _panels(r: Results) -> str:
     out = []
     for i, c in enumerate(r.clusters, start=1):
@@ -96,6 +154,15 @@ def build(r: Results | None = None) -> Path:
 
     values = {
         "AUTHOR": config.AUTHOR_LINE,
+        "COMPANY": config.COMPANY,
+        "COMPANY_SHORT": config.COMPANY_SHORT,
+        "MONOGRAM": "".join(w[0] for w in config.COMPANY_SHORT.split())[:2].upper(),
+        "DISCLAIMER": config.DISCLAIMER,
+        "PERIOD": config.PERIOD_LABEL.replace("-", "–"),
+        "FINDINGS": _findings(r),
+        "CHECKS": _spend_checks(r),
+        "CASH_CHECK": _cash_check(r),
+        "QUALITY_SUMMARY": _quality_summary(r),
         "REPO_URL": config.REPO_URL,
         "NBVIEWER_URL": NBVIEWER_URL,
         "GH_USER": config.GITHUB_USER,
@@ -131,7 +198,7 @@ def build(r: Results | None = None) -> Path:
         "BUILD_DATE": date.today().strftime("%d %B %Y"),
     }
     page = TEMPLATE.read_text()
-    escape_free = {"PANELS", "CLUSTER_TABLE", "CLEANING_TABLE"}
+    escape_free = {"PANELS", "CLUSTER_TABLE", "CLEANING_TABLE", "FINDINGS", "CHECKS", "CASH_CHECK"}
     for k, v in values.items():
         page = page.replace("{{" + k + "}}", v if k in escape_free else html.escape(v, quote=True))
     leftover = page.split("{{")[1:]

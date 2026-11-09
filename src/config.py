@@ -19,6 +19,13 @@ END_DATE = "2025-12-31"
 # the operating-spend series used for cluster detection.
 SCHEDULED_CATEGORIES = ("Payroll", "Rent")
 
+# A fictional company, used so the sample reads like a real report.
+COMPANY = "Calder Ashby Engineering"
+COMPANY_SHORT = "Calder Ashby"
+PERIOD_LABEL = "January-December 2025"
+DISCLAIMER = (f"{COMPANY} is a fictional company. Every transaction, name and figure in this sample is "
+              "synthetic and for illustration only.")
+
 GITHUB_USER = "veridius-code"
 REPO_NAME = "transaction-viz-showcase"
 REPO_URL = f"https://github.com/{GITHUB_USER}/{REPO_NAME}"

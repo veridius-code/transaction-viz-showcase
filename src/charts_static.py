@@ -15,7 +15,7 @@ from src.analysis import Results, run_pipeline  # noqa: E402
 
 MONTHS = mdates.MonthLocator()
 MONTH_FMT = mdates.DateFormatter("%b")
-SOURCE_NOTE = "Generated ledger, seed 42 · 365 days"
+SOURCE_NOTE = f"Source: {config.COMPANY} ledger (fictional, generated with seed {config.SEED})"
 
 
 def _month_axis(ax) -> None:
@@ -66,8 +66,8 @@ def chart_velocity(r: Results):
     for c in nv.spend(r):
         peak = d.loc[c.start:c.end, "outflow_operating"].max()
         mid = c.start + (c.end - c.start) / 2
-        ax.annotate(nv.callout(c), xy=(mid, peak), xytext=(mid + pd.Timedelta(days=9), ymax * 0.93),
-                    fontsize=15, fontweight="bold", color=st.INK, ha="left", va="center",
+        ax.annotate(nv.callout(c, r), xy=(mid, peak), xytext=(mid + pd.Timedelta(days=9), ymax * 0.93),
+                    fontsize=15, fontweight="bold", color=st.INK, ha="left", va="center", linespacing=1.25,
                     arrowprops=dict(arrowstyle="-", color=st.ACCENT, lw=1.4,
                                     connectionstyle="angle,angleA=0,angleB=90,rad=0"))
     st.add_footer(fig, SOURCE_NOTE)
