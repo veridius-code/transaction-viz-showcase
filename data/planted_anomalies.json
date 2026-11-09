@@ -1,0 +1,29 @@
+[
+  {
+    "id": "A",
+    "kind": "spend_cluster",
+    "direction": "out",
+    "category": "Equipment",
+    "start": "2025-03-11",
+    "end": "2025-03-13",
+    "multiplier": 2.6
+  },
+  {
+    "id": "B",
+    "kind": "spend_cluster",
+    "direction": "out",
+    "category": "Contractors",
+    "start": "2025-08-11",
+    "end": "2025-08-15",
+    "multiplier": 2.0
+  },
+  {
+    "id": "C",
+    "kind": "inflow_drought",
+    "direction": "in",
+    "category": "Customer receipts",
+    "start": "2025-10-14",
+    "end": "2025-10-19",
+    "keep_fraction": 0.05
+  }
+]
